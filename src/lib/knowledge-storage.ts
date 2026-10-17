@@ -23,12 +23,10 @@ export function readNotes(storage: NotesStorage): Note[] {
 }
 
 export function writeNotes(storage: NotesStorage, notes: Note[]): void {
+  const serialized = JSON.stringify(notesSchema.parse(notes));
   try {
-    storage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesSchema.parse(notes)));
-  } catch (error) {
-    if (error instanceof zodValidationError) throw error;
+    storage.setItem(NOTES_STORAGE_KEY, serialized);
+  } catch {
     throw new Error("Your notes could not be saved. Check your browser storage and try again.");
   }
 }
-
-class zodValidationError extends Error {}
