@@ -4,7 +4,13 @@ export const noteDraftSchema = z.object({
   title: z.string().trim().min(1, "Give this note a title."),
   content: z.string().trim().min(1, "Add some content before saving."),
   tags: z
-    .array(z.string().trim().min(1, "Tags cannot be empty.").refine((tag) => !tag.includes(","), "Tags cannot contain commas."))
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Tags cannot be empty.")
+        .refine((tag) => !tag.includes(","), "Tags cannot contain commas."),
+    )
     .default([]),
 });
 
@@ -45,10 +51,7 @@ function newId(): string {
   return `note-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-export function createNote(
-  draft: NoteDraft,
-  options: { id?: string; now?: string } = {},
-): Note {
+export function createNote(draft: NoteDraft, options: { id?: string; now?: string } = {}): Note {
   const parsed = noteDraftSchema.parse(draft);
   const timestamp = options.now ?? new Date().toISOString();
   return {
@@ -71,8 +74,12 @@ export function filterAndSortNotes(notes: Note[], filters: NoteFilters): Note[] 
   const selectedTags = filters.tags.map((tag) => tag.toLocaleLowerCase());
   const matching = notes.filter((note) => {
     if (filters.pinnedOnly && !note.pinned) return false;
-    if (query && !`${note.title}\n${note.content}`.toLocaleLowerCase().includes(query)) return false;
-    if (selectedTags.length && !note.tags.some((tag) => selectedTags.includes(tag.toLocaleLowerCase()))) {
+    if (query && !`${note.title}\n${note.content}`.toLocaleLowerCase().includes(query))
+      return false;
+    if (
+      selectedTags.length &&
+      !note.tags.some((tag) => selectedTags.includes(tag.toLocaleLowerCase()))
+    ) {
       return false;
     }
     return true;
@@ -80,7 +87,8 @@ export function filterAndSortNotes(notes: Note[], filters: NoteFilters): Note[] 
 
   return matching.sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    if (filters.sort === "title") return a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
+    if (filters.sort === "title")
+      return a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
     const dateKey = filters.sort === "created" ? "createdAt" : "updatedAt";
     return b[dateKey].localeCompare(a[dateKey]);
   });

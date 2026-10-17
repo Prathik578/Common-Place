@@ -18,7 +18,11 @@ function inlineMarkdown(text: string, keyPrefix: string): ReactNode[] {
       const label = parts?.[1] ?? value;
       const href = parts?.[2] ?? "";
       if (/^(https?:\/\/|mailto:)/i.test(href)) {
-        output.push(<a key={key} href={href} target="_blank" rel="noreferrer">{label}</a>);
+        output.push(
+          <a key={key} href={href} target="_blank" rel="noreferrer">
+            {label}
+          </a>,
+        );
       } else {
         output.push(label);
       }
@@ -47,7 +51,11 @@ export function MarkdownContent({ content }: { content: string }) {
         index += 1;
       }
       index += 1;
-      blocks.push(<pre key={`block-${blocks.length}`}><code>{codeLines.join("\n")}</code></pre>);
+      blocks.push(
+        <pre key={`block-${blocks.length}`}>
+          <code>{codeLines.join("\n")}</code>
+        </pre>,
+      );
       continue;
     }
     const heading = /^(#{1,3})\s+(.+)$/.exec(line);
@@ -66,30 +74,55 @@ export function MarkdownContent({ content }: { content: string }) {
         quote.push((lines[index] ?? "").replace(/^>\s?/, ""));
         index += 1;
       }
-      blocks.push(<blockquote key={`block-${blocks.length}`}>{inlineMarkdown(quote.join(" "), `quote-${blocks.length}`)}</blockquote>);
+      blocks.push(
+        <blockquote key={`block-${blocks.length}`}>
+          {inlineMarkdown(quote.join(" "), `quote-${blocks.length}`)}
+        </blockquote>,
+      );
       continue;
     }
     const unordered = /^\s*[-*+]\s+/.test(line);
     const ordered = /^\s*\d+[.)]\s+/.test(line);
     if (unordered || ordered) {
       const items: string[] = [];
-      const matches = (candidate: string) => unordered
-        ? /^\s*[-*+]\s+/.test(candidate)
-        : /^\s*\d+[.)]\s+/.test(candidate);
+      const matches = (candidate: string) =>
+        unordered ? /^\s*[-*+]\s+/.test(candidate) : /^\s*\d+[.)]\s+/.test(candidate);
       while (index < lines.length && matches(lines[index] ?? "")) {
         items.push((lines[index] ?? "").replace(unordered ? /^\s*[-*+]\s+/ : /^\s*\d+[.)]\s+/, ""));
         index += 1;
       }
-      const listItems = items.map((item, itemIndex) => <li key={`item-${itemIndex}`}>{inlineMarkdown(item, `list-${blocks.length}-${itemIndex}`)}</li>);
-      blocks.push(unordered ? <ul key={`block-${blocks.length}`}>{listItems}</ul> : <ol key={`block-${blocks.length}`}>{listItems}</ol>);
+      const listItems = items.map((item, itemIndex) => (
+        <li key={`item-${itemIndex}`}>
+          {inlineMarkdown(item, `list-${blocks.length}-${itemIndex}`)}
+        </li>
+      ));
+      blocks.push(
+        unordered ? (
+          <ul key={`block-${blocks.length}`}>{listItems}</ul>
+        ) : (
+          <ol key={`block-${blocks.length}`}>{listItems}</ol>
+        ),
+      );
       continue;
     }
     const paragraph: string[] = [];
-    while (index < lines.length && (lines[index] ?? "").trim() && !/^(#{1,3})\s+/.test(lines[index] ?? "") && !/^>\s?/.test(lines[index] ?? "") && !/^```/.test(lines[index] ?? "") && !/^\s*[-*+]\s+/.test(lines[index] ?? "") && !/^\s*\d+[.)]\s+/.test(lines[index] ?? "")) {
+    while (
+      index < lines.length &&
+      (lines[index] ?? "").trim() &&
+      !/^(#{1,3})\s+/.test(lines[index] ?? "") &&
+      !/^>\s?/.test(lines[index] ?? "") &&
+      !/^```/.test(lines[index] ?? "") &&
+      !/^\s*[-*+]\s+/.test(lines[index] ?? "") &&
+      !/^\s*\d+[.)]\s+/.test(lines[index] ?? "")
+    ) {
       paragraph.push((lines[index] ?? "").trim());
       index += 1;
     }
-    blocks.push(<p key={`block-${blocks.length}`}>{inlineMarkdown(paragraph.join(" "), `paragraph-${blocks.length}`)}</p>);
+    blocks.push(
+      <p key={`block-${blocks.length}`}>
+        {inlineMarkdown(paragraph.join(" "), `paragraph-${blocks.length}`)}
+      </p>,
+    );
   }
   return <div className="note-prose">{blocks}</div>;
 }
